@@ -1,3 +1,17 @@
+######################################## CUSTOM IGNORE ######################################## 
+
+# un push all file in data (hands) directory
+projects/hands/data/*
+
+
+
+
+
+
+
+
+
+######################################## AUTO IGNORE ######################################## 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
