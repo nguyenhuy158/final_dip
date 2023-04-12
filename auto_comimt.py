@@ -13,4 +13,4 @@ suffix = random.choice(suffixes)
 message = f"{prefix} {suffix}"
 
 # Commit the changes with the generated message
-os.system(f"git add . && git commit -m '{message}'")
+os.system(f"git add . && git commit -m '{message}' && git push")
