@@ -1,6 +1,6 @@
 import cv2
 import os
-
+import numpy as np
 
 # windown title
 window_title = "result"
@@ -27,7 +27,41 @@ def process_image(img, val):
     img_processed = cv2.adaptiveThreshold(
         img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
     )
-    return img_processed
+
+    # kernel = np.ones((3, 3), np.uint8)
+    # img_processed = cv2.erode(img_processed, kernel, iterations=1)
+    # img_processed = cv2.dilate(img_processed, kernel, iterations=1)
+
+    contours, hierarchy = cv2.findContours(
+        img_processed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    table_contour = None
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area > 10000 and area < 50000:
+            x, y, w, h = cv2.boundingRect(contour)
+            aspect_ratio = float(w) / h
+            if aspect_ratio > 0.5 and aspect_ratio < 2:
+                table_contour = contour
+                break
+
+    # Apply perspective transformation to flatten the table
+    if table_contour is not None:
+        rect = cv2.minAreaRect(table_contour)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+        height = max(rect[1])
+        width = min(rect[1])
+        src_pts = box.astype("float32")
+        dst_pts = np.array(
+            [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
+            dtype="float32",
+        )
+        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        warped = cv2.warpPerspective(img, M, (int(width), int(height)))
+
+    return warped if warped is not None else img_processed
 
 
 path = "projects/scoresheets/input/test1.png"
