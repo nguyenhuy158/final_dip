@@ -3,7 +3,7 @@ from os import *
 
 
 # windown title
-window_title = 'result'
+window_title = "result"
 
 # set name of windown
 namedWindow(window_title)
@@ -24,12 +24,13 @@ def process_image(img, val):
     img = cvtColor(img, COLOR_BGR2GRAY)
 
     # threshold
-    img_processed = adaptiveThreshold(img, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
-                                      THRESH_BINARY, 11, 2)
+    img_processed = adaptiveThreshold(
+        img, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 11, 2
+    )
     return img_processed
 
 
-path = 'projects/scoresheets/input/test1.png'
+path = "projects/scoresheets/input/test1.png"
 # read img from path
 img = imread(path)
 
@@ -45,11 +46,7 @@ print(img.shape)
 
 
 # Create the trackbar
-createTrackbar('parameter',
-               window_title,
-               0,
-               255,
-               on_trackbar)
+createTrackbar("parameter", window_title, 0, 255, on_trackbar)
 
 
 # Show the original image
