@@ -7,7 +7,7 @@ paths = ["test{}.jpg".format(i) for i in range(1, 3)]
 
 
 def loop(path):
-    path = "input/" +path
+    path = "input/" + path
     print(path)
 
     # Đọc ảnh
@@ -34,7 +34,7 @@ def loop(path):
     y_end = 0
 
     print(x_start, y_start, x_end, y_end)
-    
+
     # Nếu tìm thấy các vòng tròn
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
@@ -53,7 +53,8 @@ def loop(path):
             if y < y_start:
                 y_start = y
         print(x_start, y_start, x_end, y_end)
-        cv2.rectangle(image, (x_start, y_start), (x_end, y_end), (0, 255, 0), 2)
+        cv2.rectangle(image, (x_start, y_start),
+                      (x_end, y_end), (0, 255, 0), 2)
         print("output/" + path)
         imshow(image)
         cv2.imwrite("output/" + path, image)
@@ -61,6 +62,7 @@ def loop(path):
         show_graph(circles)
     else:
         print("Không tìm thấy vòng tròn trong ảnh")
+
 
 def show_graph(circles):
     # Tạo danh sách các tọa độ x và y của các vòng tròn
@@ -81,6 +83,7 @@ def show_graph(circles):
     axs[1].set_xlabel("Y-coordinate")
     axs[1].set_ylabel("Frequency")
     plt.show()
+
 
 def imshow(image):
     # Hiển thị ảnh gốc và ảnh đã tìm thấy các vòng tròn
