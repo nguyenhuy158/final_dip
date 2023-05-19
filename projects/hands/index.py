@@ -1,93 +1,114 @@
 import cv2
-import os
+from collections import deque
+import mediapipe as mp
 import numpy as np
+from src.utils import get_images, get_overlay
+from src.config import *
+import torch
 
-# windown title
-window_title = "result"
+# Khởi tạo giá trị cần thiết cho mediapipe
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_hands = mp.solutions.hands
 
-# set name of windown
-cv2.namedWindow(window_title)
+# Load model classifications
+if torch.cuda.is_available():
+    model = torch.load("hands/trained_models/whole_model_quickdraw")
+else:
+    model = torch.load("hands/trained_models/whole_model_quickdraw", map_location=lambda storage, loc: storage)
+model.eval()
+predicted_class = None  
 
+cap = cv2.VideoCapture(0)
+points = deque(maxlen=512)
+canvas = np.zeros((480, 640, 3), dtype=np.uint8)
+is_drawing = False
+is_shown = False
+class_images = get_images("images", CLASSES)
 
-def on_trackbar(val):
-    # function for track bar
-    img_processed = process_image(img, val)
-    # Show the processed image
-    img_processed = cv2.imshow(window_title, img_processed)
-    cv2.imshow(window_title, img_processed)
+# sử dụng solution của mediapipe dành cho hand gesture
+with mp_hands.Hands(
+        max_num_hands=1,
+        model_complexity=0,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5) as hands:
+    while cap.isOpened():
+        # đọc từng frame ảnh
+        success, image = cap.read()
 
+        # flip ảnh để xuôi theo chiều của người dùng
+        image = cv2.flip(image, 1)
+        if not success:
+            continue
 
-def process_image(img, val):
-    # process
+        # Đánh dấu hình ảnh là không thể ghi (không cần phải sao chép dữ liệu hình ảnh vì hình ảnh sẽ không bị thay đổi)
+        image.flags.writeable = False
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = hands.process(image)
 
-    # convert to gray
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Vẽ chú thích theo tay lên ảnh.
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-    # threshold
-    img_processed = cv2.adaptiveThreshold(
-        img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
+        # Với mỗi frame, nếu phát hiện ra 1 bàn tay xuất hiện trước cam
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                
+                # Check xem người dùng có mở tay không
+                # mở tay -> dự đoán hình bàn tay vừa vẽ
+                if hand_landmarks.landmark[8].y < hand_landmarks.landmark[7].y and hand_landmarks.landmark[12].y < \
+                        hand_landmarks.landmark[11].y and hand_landmarks.landmark[16].y < hand_landmarks.landmark[15].y:
+                    
+                    # crop khu vực nhỏ xung quanh hình mà người dùng vẽ 
+                    # Không fit background -> mô hình dễ train và dự đoán
+                    if len(points):
+                        is_drawing = False
+                        is_shown = True
+                        canvas_gs = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
+                        canvas_gs = cv2.medianBlur(canvas_gs, 9)
+                        canvas_gs = cv2.GaussianBlur(canvas_gs, (5, 5), 0)
+                        ys, xs = np.nonzero(canvas_gs)
+                        if len(ys) and len(xs):
+                            min_y = np.min(ys)
+                            max_y = np.max(ys)
+                            min_x = np.min(xs)
+                            max_x = np.max(xs)
+                            cropped_image = canvas_gs[min_y:max_y, min_x: max_x]
+                            cropped_image = cv2.resize(cropped_image, (28, 28))
+                            cropped_image = np.array(cropped_image, dtype=np.float32)[None, None, :, :]
+                            cropped_image = torch.from_numpy(cropped_image)
+                            ######### end of cropping
+                            
+                            # đưa ảnh vào trong neural network
+                            logits = model(cropped_image)
 
-    # kernel = np.ones((3, 3), np.uint8)
-    # img_processed = cv2.erode(img_processed, kernel, iterations=1)
-    # img_processed = cv2.dilate(img_processed, kernel, iterations=1)
+                            # Từ kết quả neural network, dự đoán class người dùng vẽ là class nào
+                            predicted_class = torch.argmax(logits[0])
+                            points = deque(maxlen=512)
+                            canvas = np.zeros((480, 640, 3), dtype=np.uint8)
+                else:
+                    is_drawing = True
+                    is_shown = False
+                    points.append((int(hand_landmarks.landmark[8].x*640), int(hand_landmarks.landmark[8].y*480)))
+                    for i in range(1, len(points)):
+                        cv2.line(image, points[i - 1], points[i], (0, 255, 0), 2)
+                        cv2.line(canvas, points[i - 1], points[i], (255, 255, 255), 5)
+                
+                # Hand drawing từ người dùng
+                mp_drawing.draw_landmarks(
+                    image,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style())
+                
+                # Hiển thị kết quả khi mở 5 đầu ngón tay ra
+                if not is_drawing and is_shown:
+                    cv2.putText(image, 'You are drawing', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 5,
+                                cv2.LINE_AA)
+                    image[5:65, 490:550] = get_overlay(image[5:65, 490:550], class_images[predicted_class], (60, 60))
 
-    contours, hierarchy = cv2.findContours(
-        img_processed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    table_contour = None
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area > 10000 and area < 50000:
-            x, y, w, h = cv2.boundingRect(contour)
-            aspect_ratio = float(w) / h
-            if aspect_ratio > 0.5 and aspect_ratio < 2:
-                table_contour = contour
-                break
-
-    # Apply perspective transformation to flatten the table
-    if table_contour is not None:
-        rect = cv2.minAreaRect(table_contour)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-        height = max(rect[1])
-        width = min(rect[1])
-        src_pts = box.astype("float32")
-        dst_pts = np.array(
-            [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
-            dtype="float32",
-        )
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-        warped = cv2.warpPerspective(img, M, (int(width), int(height)))
-
-    return warped if warped is not None else img_processed
-
-
-path = "projects/scoresheets/input/test1.png"
-# read img from path
-img = cv2.imread(path)
-
-# resize img
-img = cv2.resize(img, (0, 0), fx=0.7, fy=0.7)
-
-
-# print current working directory
-print(os.getcwd())
-
-# print img shape
-print(img.shape)
-
-
-# Create the trackbar
-cv2.createTrackbar("parameter", window_title, 0, 255, on_trackbar)
-
-
-# Show the original image
-cv2.imshow(window_title, img)
-
-# Wait for a key press
-cv2.waitKey(0)
-
-# Destroy all windows
-cv2.destroyAllWindows()
+        cv2.imshow('Air Gesture By Hands', image)
+        if cv2.waitKey(5) & 0xFF == 27:
+            break
+cap.release()
