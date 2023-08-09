@@ -163,3 +163,29 @@ def game_running(clock, success, game_text, player1, player2, results):
             print(game_text)
 
     return clock, success, game_text, player1, player2
+
+
+def get_current_option(frame):
+    results = hands.process(frame)
+    if results.multi_hand_landmarks is None:
+        return None
+
+    # print(f"len {len(results.multi_hand_landmarks)}")
+    if len(results.multi_hand_landmarks) == 1:
+        # print(results.multi_hand_landmarks[0])
+        hand_landmarks = results.multi_hand_landmarks[0]
+        draw_landmarks(frame, hand_landmarks)
+        draw_hand_bounding_box(frame, hand_landmarks, string_constants.PLAYER1)
+
+        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+                hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+                hand_landmarks.landmark[9].y < hand_landmarks.landmark[12].y and \
+                hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
+                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+            return 1
+        else:
+            return None
+
+    elif len(results.multi_hand_landmarks) == 2:
+        add_text_to_image(frame, string_constants.warn_one_hand)
+    return None

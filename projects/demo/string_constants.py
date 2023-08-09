@@ -11,8 +11,10 @@ ROCK = 'rock'
 SCISSORS = 'scissors'
 PLAYER2_WIN = 'P2 thang.'
 PLAYER1_WIN = 'P1 thang.'
+PLAYER1 = 'Player1'
 TIED = 'Hoa'
 MAX_TIME = 80
+MIN_TIME = 40
 space_between = 5
 FAIL = 'That bai. Vui long thu lai'
 start = 'Bat dau'
@@ -20,4 +22,4 @@ process = 'Xu ly!'
 window_name = 'MediaPipe Hands'
 time = 'Thoi Gian'
 CAM_ERROR = 'Camera not found.'
-
+warn_one_hand='Ban chi su dung 1 day de chon'
