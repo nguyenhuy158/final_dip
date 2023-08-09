@@ -14,7 +14,7 @@ def get_bbox_coordinates(handLadmark, image_shape):
     Args:
         handLadmark: A HandLandmark object.
         image_shape: A tuple of the form (height, width).
-    Returns:
+    Returns:  
         A tuple of the form (xmin, ymin, xmax, ymax).
     """
     all_x, all_y = [], []  # store all x and y points in list
