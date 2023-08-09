@@ -28,6 +28,11 @@ HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+clock = 0
+success = True
+player1 = player2 = None
+gameText = ''
+
 while videoCapture.isOpened():
     isReadSuccess, frame = videoCapture.read()
 
@@ -36,22 +41,53 @@ while videoCapture.isOpened():
         continue
 
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    utils.draw_multiline_text(frame, menu_text, menu_position)
+    frame = cv2.flip(frame, 1)
+
+    # utils.draw_multiline_text(frame, menu_text, menu_position)
 
     # Process the frame to detect hands
     results = hands.process(frame)
 
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
-            # Process hand landmarks to detect gestures
-            # Here, you can analyze the hand landmarks to recognize gestures
-            # For example, detecting open/closed fingers to recognize gestures
-            # ...
-            pass
+            mp_drawing.draw_landmarks(
+                frame, hand_landmarks, mp_hands.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style()
+            )
+
+    if 0 <= clock <= 20:
+        success = True
+        gameText = "Bat dau"
+    elif clock < 30:
+        gameText = "3..."
+    elif clock < 40:
+        gameText = "2..."
+    elif clock < 50:
+        gameText = "1..."
+    elif clock < 60:
+        gameText = "Xu ly!"
+    elif clock == 60:
+        hand_landmarks = results.multi_hand_landmarks
+        if hand_landmarks and len(hand_landmarks) == 2:
+            player1 = utils.get_hand_move(hand_landmarks[0])
+            player2 = utils.get_hand_move(hand_landmarks[1])
+        else:
+            success = False
+    elif clock < 100:
+        if success:
+            gameText = f"P1 {player1}. P2 {player2}."
+            gameText += utils.check_winner(player1, player2)
+            print(gameText)
+
+    utils.draw_multiline_text(frame, gameText, (50, 50))
+    utils.draw_multiline_text(frame, f"Thoi Gian: {clock}", (50, 80))
 
     cv2.imshow("MediaPipe Hands", frame)
     if cv2.waitKey(25) & 0xFF == ord("q"):
         break
+
+    clock = (clock + 1) % 100
 
 videoCapture.release()
 cv2.destroyAllWindows()
