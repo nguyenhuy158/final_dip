@@ -3,12 +3,10 @@ import collections
 import cv2
 import numpy as np
 import games
-import utils
+from src import utils, var, string_constants, quick_draw_utils
 import config
-import quick_draw_utils
 import mediapipe as mp
-import string_constants
-from string_constants import menu_text
+from src.string_constants import menu_text
 
 # MAIN PROCESS
 videoCapture = cv2.VideoCapture(0)
@@ -27,12 +25,12 @@ HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 option = 1
-clock = string_constants.MIN_TIME
+clock = var.MIN_TIME
 
 game_play_clock1 = 0
-game_clock1 = string_constants.MIN_TIME
-game_clock2 = string_constants.MIN_TIME
-game_clock3 = string_constants.MIN_TIME
+game_clock1 = var.MIN_TIME
+game_clock2 = var.MIN_TIME
+game_clock3 = var.MIN_TIME
 success = True
 player1 = player2 = None
 game_text = ''
@@ -87,7 +85,7 @@ while videoCapture.isOpened():
             flag_game_1 = True
         else:
             new_option = utils.get_current_option(frame)
-            clock = string_constants.MIN_TIME if new_option == 2 or new_option == 5 else clock
+            clock = var.MIN_TIME if new_option == 2 or new_option == 5 else clock
             option = new_option
 
         clock = (clock - 1)
@@ -99,7 +97,7 @@ while videoCapture.isOpened():
             flag_game_2 = True
         else:
             new_option = utils.get_current_option(frame)
-            clock = string_constants.MIN_TIME if new_option == 1 or new_option == 5 else clock
+            clock = var.MIN_TIME if new_option == 1 or new_option == 5 else clock
             option = new_option
 
         clock = (clock - 1)
@@ -111,7 +109,7 @@ while videoCapture.isOpened():
             flag_game_3 = True
         else:
             new_option = utils.get_current_option(frame)
-            clock = string_constants.MIN_TIME if new_option == 1 or new_option == 5 else clock
+            clock = var.MIN_TIME if new_option == 1 or new_option == 5 else clock
             option = new_option
 
         clock = (clock - 1)

@@ -1,11 +1,9 @@
 import collections
+import config
 import cv2
 import numpy as np
 import torch
-import quick_draw_utils
-import utils
-import config
-import string_constants
+from src import utils, var, string_constants, quick_draw_utils
 
 
 def rock_paper_scissors(frame, clock, success, game_text, player1, player2, game_clock1, is_quit):
@@ -34,8 +32,7 @@ def rock_paper_scissors(frame, clock, success, game_text, player1, player2, game
     # step4
     utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
     # step5
-    clock = (clock + 1) % string_constants.MAX_TIME
-    # step6
+    clock = (clock + 1) % var.MAX_TIME
     # step6.1
     is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
     # step6.2
@@ -45,7 +42,7 @@ def rock_paper_scissors(frame, clock, success, game_text, player1, player2, game
     elif is_horizontal:
         game_clock1 -= 1
     else:
-        game_clock3 = string_constants.MIN_TIME
+        game_clock3 = var.MIN_TIME
     # step6.3
     utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock1}")
     return clock, success, game_text, player1, player2, game_clock1, is_quit
@@ -74,7 +71,7 @@ def dino(frame, game_clock2, is_quit):
             elif is_horizontal:
                 game_clock2 -= 1
             else:
-                game_clock2 = string_constants.MIN_TIME
+                game_clock2 = var.MIN_TIME
             # step6
             utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock2}")
 
@@ -117,8 +114,8 @@ def quick_draw(frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit
             else:
                 is_drawing = True
                 is_shown = False
-                points.append((int(hand_landmarks.landmark[8].x * string_constants.new_width),
-                               int(hand_landmarks.landmark[8].y * string_constants.new_height)))
+                points.append((int(hand_landmarks.landmark[8].x * var.new_width),
+                               int(hand_landmarks.landmark[8].y * var.new_height)))
                 for i in range(1, len(points)):
                     cv2.line(frame, points[i - 1], points[i], (0, 255, 0), 2)
                     cv2.line(canvas, points[i - 1], points[i], (255, 255, 255), 5)
@@ -140,7 +137,7 @@ def quick_draw(frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit
             elif is_horizontal:
                 game_clock3 -= 1
             else:
-                game_clock3 = string_constants.MIN_TIME
+                game_clock3 = var.MIN_TIME
             # step6
             utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock3}")
 

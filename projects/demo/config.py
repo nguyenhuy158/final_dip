@@ -1,6 +1,6 @@
 import torch
 
-import quick_draw_utils
+from src import quick_draw_utils
 
 RED_HSV_LOWER = [0, 100, 100]
 RED_HSV_UPPER = [20, 255, 255]
@@ -18,13 +18,16 @@ YELLOW_RGB = (0, 255, 255)
 WHITE_RGB = (255, 255, 255)
 
 if torch.cuda.is_available():
-    model = torch.load("./trained_models/whole_model_quickdraw")
+    model = torch.load("model/whole_model_quickdraw")
 else:
-    model = torch.load("./trained_models/whole_model_quickdraw", map_location=lambda storage, loc: storage)
+    model = torch.load("model/whole_model_quickdraw", map_location=lambda storage, loc: storage)
 model.eval()
 
-CLASSES = ["apple", "book", "bowtie", "candle", "cloud", "cup", "door", "envelope", "eyeglasses", "guitar", "hammer",
-           "hat", "ice cream", "leaf", "scissors", "star", "t-shirt", "pants", "lightning", "tree"]
+CLASSES = ["apple", "book", "bowtie", "candle",
+           "cloud", "cup", "door", "envelope",
+           "eyeglasses", "guitar", "hammer", "hat",
+           "ice cream", "leaf", "scissors", "star",
+           "t-shirt", "pants", "lightning", "tree"]
 
 class_images = quick_draw_utils.get_images("images", CLASSES)
 
