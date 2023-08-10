@@ -7,7 +7,7 @@ paths = ["test{}.jpg".format(i) for i in range(1, 3)]
 
 
 def loop(path):
-    path = "input/" + path
+    path = "./input/" + path
     print(path)
 
     # Đọc ảnh

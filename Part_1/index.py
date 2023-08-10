@@ -2,10 +2,10 @@ import cv2
 import os
 import numpy as np
 
-# windown title
+# window title
 window_title = "result"
 
-# set name of windown
+# set name of window
 cv2.namedWindow(window_title)
 
 
@@ -64,13 +64,12 @@ def process_image(img, val):
     return warped if warped is not None else img_processed
 
 
-path = "projects/scoresheets/input/test1.png"
+path = './input/test1.jpg'
 # read img from path
 img = cv2.imread(path)
 
 # resize img
 img = cv2.resize(img, (0, 0), fx=0.7, fy=0.7)
-
 
 # print current working directory
 print(os.getcwd())
@@ -78,10 +77,8 @@ print(os.getcwd())
 # print img shape
 print(img.shape)
 
-
 # Create the trackbar
 cv2.createTrackbar("parameter", window_title, 0, 255, on_trackbar)
-
 
 # Show the original image
 cv2.imshow(window_title, img)
