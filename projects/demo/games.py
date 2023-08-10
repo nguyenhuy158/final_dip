@@ -1,5 +1,12 @@
+import collections
+
 import cv2
+import numpy as np
+import torch
+
+import quick_draw_utils
 import utils
+import config
 import string_constants
 
 
@@ -25,6 +32,8 @@ def dino(frame, game_clock2, is_quit):
                 is_quit = True
             elif is_horizontal:
                 game_clock2 -= 1
+            else:
+                game_clock2 = string_constants.MIN_TIME
             # step6
             utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock2}")
 
@@ -60,3 +69,50 @@ def rock_paper_scissors(frame, clock, success, game_text, player1, player2, is_q
     clock = (clock + 1) % string_constants.MAX_TIME
     # step6
     return clock, success, game_text, player1, player2, is_quit
+
+
+def quick_draw(frame, points, canvas, is_drawing, is_shown):
+    results = utils.hands.process(frame)
+
+    # Draw the hand annotations on the image.
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            if hand_landmarks.landmark[8].y < hand_landmarks.landmark[7].y and hand_landmarks.landmark[12].y < \
+                    hand_landmarks.landmark[11].y and hand_landmarks.landmark[16].y < hand_landmarks.landmark[15].y:
+                if len(points):
+                    is_drawing = False
+                    is_shown = True
+                    canvas_gs = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
+                    canvas_gs = cv2.medianBlur(canvas_gs, 9)
+                    canvas_gs = cv2.GaussianBlur(canvas_gs, (5, 5), 0)
+                    ys, xs = np.nonzero(canvas_gs)
+                    if len(ys) and len(xs):
+                        min_y = np.min(ys)
+                        max_y = np.max(ys)
+                        min_x = np.min(xs)
+                        max_x = np.max(xs)
+                        cropped_image = canvas_gs[min_y:max_y, min_x: max_x]
+                        cropped_image = cv2.resize(cropped_image, (28, 28))
+                        cropped_image = np.array(cropped_image, dtype=np.float32)[None, None, :, :]
+                        cropped_image = torch.from_numpy(cropped_image)
+                        logits = config.model(cropped_image)
+                        config.predicted_class = torch.argmax(logits[0])
+                        points = collections.deque(maxlen=512)
+                        canvas = np.zeros((480, 640, 3), dtype=np.uint8)
+            else:
+                is_drawing = True
+                is_shown = False
+                points.append((int(hand_landmarks.landmark[8].x * 640), int(hand_landmarks.landmark[8].y * 480)))
+                for i in range(1, len(points)):
+                    cv2.line(frame, points[i - 1], points[i], (0, 255, 0), 2)
+                    cv2.line(canvas, points[i - 1], points[i], (255, 255, 255), 5)
+                    utils.draw_landmarks(frame, hand_landmarks)
+                    if not is_drawing and is_shown:
+                        cv2.putText(frame, 'You are drawing', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5,
+                                    cv2.LINE_AA)
+                        frame[5:65, 490:550] = quick_draw_utils.get_overlay(frame[5:65, 490:550],
+                                                                            config.class_images[config.predicted_class],
+                                                                            (60, 60))
+
+    return points, canvas, is_drawing, is_shown

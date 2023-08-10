@@ -1,8 +1,11 @@
 # IMPORT LIBRARY
+import collections
 import cv2
-
+import numpy as np
 import games
 import utils
+import config
+import quick_draw_utils
 import mediapipe as mp
 import string_constants
 from string_constants import menu_text
@@ -36,7 +39,16 @@ player1 = player2 = None
 game_text = ''
 flag_game_1 = False
 flag_game_2 = False
+flag_game_3 = False
 is_quit = False
+
+# quickdraw
+cap = cv2.VideoCapture(0)
+points = collections.deque(maxlen=512)
+canvas = np.zeros((480, 640, 3), dtype=np.uint8)
+is_drawing = False
+is_shown = False
+class_images = quick_draw_utils.get_images("images", config.CLASSES)
 
 while videoCapture.isOpened():
     isReadSuccess, frame = videoCapture.read()
@@ -45,6 +57,9 @@ while videoCapture.isOpened():
         print(string_constants.CAM_ERROR)
         continue
 
+    # To improve performance, optionally mark the image as not writeable to
+    # pass by reference.
+    # frame.flags.writeable = False
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = cv2.flip(frame, 1)
 
@@ -52,6 +67,7 @@ while videoCapture.isOpened():
     print(f"clock -> {clock}")
     print(f"flag_game_1 -> {flag_game_1}")
     print(f"flag_game_2 -> {flag_game_2}")
+    print(f"flag_game_3 -> {flag_game_3}")
     print(f"game_clock1 -> {game_clock1}")
     print(f"game_clock2 -> {game_clock2}")
     print(f"is_quit -> {is_quit}")
@@ -97,6 +113,9 @@ while videoCapture.isOpened():
         game_clock2, is_quit = games.dino(frame, game_clock2, is_quit)
         is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
                                                                                  game_clock2)
+
+    if flag_game_3:
+        points, canvas, is_drawing, is_shown = games.quick_draw(frame, points, canvas, is_drawing, is_shown)
 
     cv2.imshow(string_constants.window_name, frame)
     if cv2.waitKey(25) & 0xFF == ord("q"):
