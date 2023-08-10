@@ -2,6 +2,10 @@ import utils
 import string_constants
 
 
+def flappy_bird():
+    pass
+
+
 def rock_paper_scissors(frame, clock, success, game_text, player1, player2):
     # Process the frame to detect hands
     results = utils.hands.process(frame)

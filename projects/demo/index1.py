@@ -1,29 +1,23 @@
 import cv2
 import mediapipe as mp
 from pynput.keyboard import Controller, Key
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
 keyboard = Controller()
 
+
 #
-def get_bbox_coordinates(handLadmark, image_shape):
-    """
-    Get bounding box coordinates for a hand landmark.
-    Args:
-        handLadmark: A HandLandmark object.
-        image_shape: A tuple of the form (height, width).
-    Returns:  
-        A tuple of the form (xmin, ymin, xmax, ymax).
-    """
+def get_bbox_coordinates(hand_landmark, image_shape):
     all_x, all_y = [], []  # store all x and y points in list
     for hnd in mp_hands.HandLandmark:
         all_x.append(
-            int(handLadmark.landmark[hnd].x * image_shape[1])
+            int(hand_landmark.landmark[hnd].x * image_shape[1])
         )  # multiply x by image width
         all_y.append(
-            int(handLadmark.landmark[hnd].y * image_shape[0])
+            int(hand_landmark.landmark[hnd].y * image_shape[0])
         )  # multiply y by image height
 
     return (
@@ -64,12 +58,12 @@ while cap.isOpened():
             )
             x1, y1, x2, y2 = get_bbox_coordinates(hand_landmarks, image.shape)
             image = cv2.rectangle(image, (x1, y1), (x2, y2), color=(0, 0, 0))
-            
+
             # print(hand_landmarks.landmark[0].x, hand_landmarks.landmark[0].y)
             if (hand_landmarks.landmark[8].y > hand_landmarks.landmark[5].y) \
-            and (hand_landmarks.landmark[12].y > hand_landmarks.landmark[9].y) \
-			and (hand_landmarks.landmark[16].y > hand_landmarks.landmark[13].y):
-               keyboard.press(Key.space)
+                    and (hand_landmarks.landmark[12].y > hand_landmarks.landmark[9].y) \
+                    and (hand_landmarks.landmark[16].y > hand_landmarks.landmark[13].y):
+                keyboard.press(Key.space)
             else:
                 keyboard.release(Key.space)
 

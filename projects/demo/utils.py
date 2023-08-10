@@ -174,15 +174,27 @@ def get_current_option(frame):
     if len(results.multi_hand_landmarks) == 1:
         # print(results.multi_hand_landmarks[0])
         hand_landmarks = results.multi_hand_landmarks[0]
-        draw_landmarks(frame, hand_landmarks)
+        # draw_landmarks(frame, hand_landmarks)
         draw_hand_bounding_box(frame, hand_landmarks, string_constants.PLAYER1)
 
+        if hand_landmarks.landmark[1].y > hand_landmarks.landmark[4].y and \
+                hand_landmarks.landmark[5].y > hand_landmarks.landmark[8].y and \
+                hand_landmarks.landmark[9].y > hand_landmarks.landmark[12].y and \
+                hand_landmarks.landmark[13].y > hand_landmarks.landmark[16].y and \
+                hand_landmarks.landmark[17].y > hand_landmarks.landmark[20].y:
+            return 5
+
         if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
-                hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
                 hand_landmarks.landmark[9].y < hand_landmarks.landmark[12].y and \
                 hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
                 hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
             return 1
+
+        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+                hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
+                hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
+                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+            return 2
         else:
             return None
 
