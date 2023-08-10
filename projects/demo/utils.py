@@ -12,13 +12,17 @@ keyboard = Controller()
 
 
 def check_hand_horizontal(palm_landmarks):
-    # Calculate the slope of the hand line (y2 - y1) / (x2 - x1)
-    slope = (palm_landmarks[0][1] - palm_landmarks[9][1]) / (palm_landmarks[0][0] - palm_landmarks[9][0])
+    try:
+        # Calculate the slope of the hand line (y2 - y1) / (x2 - x1)
+        slope = (palm_landmarks[0][1] - palm_landmarks[9][1]) / (palm_landmarks[0][0] - palm_landmarks[9][0])
 
-    # Define a threshold for the slope to determine if the hand is horizontal
-    slope_threshold = 0.5  # Adjust this value as needed
+        # Define a threshold for the slope to determine if the hand is horizontal
+        slope_threshold = 0.5  # Adjust this value as needed
 
-    return abs(slope) < slope_threshold
+        return abs(slope) < slope_threshold
+    except ZeroDivisionError:
+        print("Error div zero")
+    return False
 
 
 def put_text_in_middle(image, text):

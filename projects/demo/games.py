@@ -45,10 +45,12 @@ def rock_paper_scissors(frame, clock, success, game_text, player1, player2, is_q
     clock, success, game_text, player1, player2 = utils.game_running(clock, success,
                                                                      game_text, player1, player2, results)
     # step2.1
-    if not success:
-        pass
-    else:
-        pass
+    # if not success:
+    #     is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
+    #     # step5
+    #     utils.put_text_horizontal(frame, is_horizontal)
+    # else:
+    #     pass
 
     # step3
     utils.draw_multiline_text(frame, game_text)
