@@ -29,7 +29,8 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 option = 1
 clock = string_constants.MIN_TIME
 
-game_clock1 = 0
+game_play_clock1 = 0
+game_clock1 = string_constants.MIN_TIME
 game_clock2 = string_constants.MIN_TIME
 game_clock3 = string_constants.MIN_TIME
 success = True
@@ -116,13 +117,17 @@ while videoCapture.isOpened():
         clock = (clock - 1)
 
     if flag_game_1:
-        game_clock1, success, game_text, player1, player2, is_quit = games.rock_paper_scissors(frame, game_clock1,
-                                                                                               success,
-                                                                                               game_text,
-                                                                                               player1, player2,
-                                                                                               is_quit)
-        # is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
-        #                                                                          game_clock2)
+        game_play_clock1, success, game_text, player1, player2, game_clock1, is_quit \
+            = games.rock_paper_scissors(frame,
+                                        game_play_clock1,
+                                        success,
+                                        game_text,
+                                        player1,
+                                        player2,
+                                        game_clock1,
+                                        is_quit)
+        is_quit, flag_game_1, option, clock, game_clock1 = utils.is_quite_game_1(is_quit, flag_game_1, option,
+                                                                                 game_clock1)
 
     if flag_game_2:
         game_clock2, is_quit = games.dino(frame, game_clock2, is_quit)
@@ -130,10 +135,13 @@ while videoCapture.isOpened():
                                                                                  game_clock2)
 
     if flag_game_3:
-        points, canvas, is_drawing, is_shown = games.quick_draw(frame, points, canvas, is_drawing, is_shown)
+        points, canvas, is_drawing, is_shown, game_clock3, is_quit = games.quick_draw(frame, points, canvas, is_drawing,
+                                                                                      is_shown, game_clock3, is_quit)
+        is_quit, flag_game_3, option, clock, game_clock3 = utils.is_quite_game_3(is_quit, flag_game_3, option,
+                                                                                 game_clock3)
 
     cv2.imshow(string_constants.window_name, frame)
-    if cv2.waitKey(25) & 0xFF == ord("q"):
+    if cv2.waitKey(25) & 0xFF == ord("q") or cv2.waitKey(5) & 0xFF == 27:
         break
 
 videoCapture.release()

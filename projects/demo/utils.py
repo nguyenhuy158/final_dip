@@ -233,15 +233,28 @@ def detect_number(hand_landmarks):
 
 
 def put_text_horizontal(image, is_horizontal=False):
-    cv2.putText(image, "Horizontal" if is_horizontal else "Not Horizontal", string_constants.position_horizontal_text,
+    cv2.putText(image, string_constants.waiting_to_exit if is_horizontal else string_constants.tutor_to_exit,
+                string_constants.position_horizontal_text,
                 cv2.FONT_HERSHEY_SIMPLEX,
-                1, (0, 255, 0), 2)
+                string_constants.scale_half, string_constants.white_color, 1)
+
+
+def is_quite_game_1(is_quit, flag_game_1, option, game_clock_1):
+    if is_quit:
+        return False, False, None, string_constants.MIN_TIME, string_constants.MIN_TIME
+    return is_quit, flag_game_1, option, string_constants.MIN_TIME, game_clock_1
 
 
 def is_quite_game_2(is_quit, flag_game_2, option, game_clock_2):
     if is_quit:
         return False, False, None, string_constants.MIN_TIME, string_constants.MIN_TIME
     return is_quit, flag_game_2, option, string_constants.MIN_TIME, game_clock_2
+
+
+def is_quite_game_3(is_quit, flag_game_3, option, game_clock_3):
+    if is_quit:
+        return False, False, None, string_constants.MIN_TIME, string_constants.MIN_TIME
+    return is_quit, flag_game_3, option, string_constants.MIN_TIME, game_clock_3
 
 
 def is_horizontal(frame, frame_hands):
@@ -257,7 +270,6 @@ def is_horizontal(frame, frame_hands):
 
 
 def change_video_capture_size(video_capture):
-
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, string_constants.new_width)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, string_constants.new_height)
     pass
