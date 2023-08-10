@@ -6,49 +6,40 @@ import torch
 from src import utils, var, string_constants, quick_draw_utils
 
 
-def rock_paper_scissors(frame, clock, success, game_text, player1, player2, game_clock1, is_quit):
-    # Process the frame to detect hands
+def rock_paper_scissors(frame, text_frame, clock, success, game_text, player1, player2, game_clock1, is_quit):
     results = utils.hands.process(frame)
-
-    # step1
+    # step1: DRAW BOX AND PLAYER NAME
     if results.multi_hand_landmarks:
         for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
             utils.draw_landmarks(frame, hand_landmarks)
-            player_name = f"P{idx + 1}"
+            player_name = f"{string_constants.PLAYER}{idx + 1}"
             utils.draw_hand_bounding_box(frame, hand_landmarks, player_name)
-    # step2
+    # step2: START GAME
     clock, success, game_text, player1, player2 = utils.game_running(clock, success,
                                                                      game_text, player1, player2, results)
-    # step2.1
-    # if not success:
-    #     is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
-    #     # step5
-    #     utils.put_text_horizontal(frame, is_horizontal)
-    # else:
-    #     pass
-
     # step3
-    utils.draw_multiline_text(frame, game_text)
+    utils.draw_multiline_text(text_frame, game_text)
     # step4
-    utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
+    utils.add_warning_text_to_bottom_left(text_frame,
+                                          f"{string_constants.game_time}: {utils.format_number_lead_zero(clock)}")
     # step5
     clock = (clock + 1) % var.MAX_TIME
     # step6.1
     is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
     # step6.2
-    utils.put_text_horizontal(frame, is_horizontal)
+    utils.put_text_horizontal(text_frame, is_horizontal)
     if is_horizontal and game_clock1 <= 0:
         is_quit = True
     elif is_horizontal:
         game_clock1 -= 1
     else:
-        game_clock3 = var.MIN_TIME
+        game_clock1 = var.MIN_TIME
     # step6.3
-    utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock1}")
+    utils.add_normal_text_to_right_bottom(text_frame, f"{string_constants.time}: {game_clock1}")
     return clock, success, game_text, player1, player2, game_clock1, is_quit
 
 
-def dino(frame, game_clock2, is_quit):
+def dino(frame, text_frame, game_clock2, is_quit):
     results = utils.hands.process(frame)
 
     if results.multi_hand_landmarks:
@@ -60,12 +51,14 @@ def dino(frame, game_clock2, is_quit):
             # step3
             if utils.detect_number(hand_landmarks) == string_constants.ROCK:
                 utils.keyboard.press(utils.Key.space)
+                cv2.putText(text_frame, "Press", (10, frame.shape[0] - 100), var.font, var.scale_half, var.white_color,
+                            var.thickness_double)
             else:
                 utils.keyboard.release(utils.Key.space)
             # step4
             is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
             # step5
-            utils.put_text_horizontal(frame, is_horizontal)
+            utils.put_text_horizontal(text_frame, is_horizontal)
             if is_horizontal and game_clock2 <= 0:
                 is_quit = True
             elif is_horizontal:
@@ -73,12 +66,13 @@ def dino(frame, game_clock2, is_quit):
             else:
                 game_clock2 = var.MIN_TIME
             # step6
-            utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock2}")
+            utils.add_normal_text_to_right_bottom(text_frame,
+                                                  f"{string_constants.time}: {game_clock2}")
 
     return game_clock2, is_quit
 
 
-def quick_draw(frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit):
+def quick_draw(frame, text_frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit):
     results = utils.hands.process(frame)
 
     # Draw the hand annotations on the image.
@@ -139,6 +133,6 @@ def quick_draw(frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit
             else:
                 game_clock3 = var.MIN_TIME
             # step6
-            utils.add_text_to_image(frame, f"{string_constants.time}: {game_clock3}")
-
+            utils.add_normal_text_to_right_bottom(frame,
+                                                  f"{string_constants.time}: {game_clock3}")
     return points, canvas, is_drawing, is_shown, game_clock3, is_quit

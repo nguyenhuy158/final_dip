@@ -4,10 +4,6 @@ import mediapipe as mp
 from src import string_constants, var
 from pynput.keyboard import Controller, Key
 
-font = cv2.FONT_HERSHEY_SIMPLEX
-font_scale = 1
-font_color = (255, 255, 255)  # White color
-font_thickness = 2
 keyboard = Controller()
 
 
@@ -26,21 +22,12 @@ def check_hand_horizontal(palm_landmarks):
 
 
 def put_text_in_middle(image, text):
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1
-    font_color = (255, 255, 255)  # White color
-    font_thickness = 2
+    text_size = cv2.getTextSize(text, var.font, var.scale_default, var.thickness_double)[0]
 
-    # Get the size of the text
-    text_size = cv2.getTextSize(text, font, font_scale, font_thickness)[0]
-
-    # Calculate the coordinates to center the text
     text_x = (image.shape[1] - text_size[0]) // 2
     text_y = (image.shape[0] + text_size[1]) // 2
 
-    # Put the text in the middle of the image
-    cv2.putText(image, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
-
+    cv2.putText(image, text, (text_x, text_y), var.font, var.scale_default, var.white_color, var.thickness_double)
     return image
 
 
@@ -48,22 +35,16 @@ def format_number_lead_zero(num):
     return str(num) if num >= 10 else '0' + str(num)
 
 
-def add_text_to_image(image, text):
-    # Font và thông số
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = .5  # Kích thước font
-    font_color = (255, 255, 255)  # Màu chữ (trắng)
-    font_thickness = 2  # Độ dày của font
+def add_normal_text_to_right_bottom(image, text):
+    x = 10
+    y = image.shape[0] - 10
+    cv2.putText(image, text, (x, y), var.font, var.scale_half, var.white_color, var.thickness_double)
 
-    # Lấy kích thước của chữ
-    text_size = cv2.getTextSize(text, font, font_scale, font_thickness)[0]
 
-    # Tọa độ để viết chữ (bên trái phía dưới, cách phía dưới 10px)
-    text_x = 10
-    text_y = image.shape[0] - 10  # Độ cao của hình ảnh trừ đi 10px
-
-    # Vẽ chữ lên hình ảnh
-    cv2.putText(image, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+def add_warning_text_to_bottom_left(image, text):
+    x = 10
+    y = image.shape[0] - 30
+    cv2.putText(image, text, (x, y), var.font, var.scale_half, var.white_color, var.thickness_double)
 
 
 def draw_hand_bounding_box(frame, hand_landmarks, player_name):
@@ -77,17 +58,18 @@ def draw_hand_bounding_box(frame, hand_landmarks, player_name):
     x, y, w, h = cv2.boundingRect(np.array(landmark_list))
     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    text_size = cv2.getTextSize(player_name, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+    text_size = cv2.getTextSize(player_name,
+                                var.font, var.scale_half,
+                                var.thickness_double
+                                )[0]
 
-    border_color = (0, 255, 0)
     cv2.rectangle(frame, (x - 1, y - text_size[1] - var.space_between),
                   (x + text_size[0], y + text_size[1] - 2 * var.space_between - 1),
-                  border_color, var.border_fill)
-
+                  var.green_color, var.border_fill)
     cv2.putText(frame, player_name,
                 (x, y - var.space_between),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                (0, 0, 0), 2)
+                var.font, var.scale_half,
+                var.white_color, var.thickness_double)
 
 
 def get_hand_move(hand_landmarks):
@@ -100,28 +82,33 @@ def get_hand_move(hand_landmarks):
         return string_constants.PAPER
 
 
-def draw_multiline_text(image, text, fs=1):
-    # print(text)
+def draw_multiline_text(image, text):
     lines = text.split('\n')
-    # Calculate the total height of all text lines
-    total_text_height = len(lines) * cv2.getTextSize(lines[0], font, fs, font_thickness)[0][1]
-
-    # Calculate the starting y-coordinate for centering vertically
+    total_text_height = len(lines) * cv2.getTextSize(lines[0], var.font, var.scale_half, var.thickness_double)[0][1]
     start_y = (image.shape[0] - total_text_height) // 2
-
+    try:
+        margin_x = cv2.getTextSize(lines[1], var.font, var.scale_half, var.thickness_double)[0][0]
+    except Exception as e:
+        margin_x = cv2.getTextSize(lines[0], var.font, var.scale_half, var.thickness_double)[0][0]
+    start_x = (image.shape[1] - margin_x) // 2
     for line in lines:
-        text_size = cv2.getTextSize(line, font, fs, font_thickness)[0]
-
-        # Calculate the starting x-coordinate for centering horizontally
-        start_x = (image.shape[1] - text_size[0]) // 2
-
-        # Put the text line in the image
-        cv2.putText(image, line, (start_x, start_y), font, fs, font_color, font_thickness)
-
-        # Move the starting y-coordinate to the next line
-        start_y = int(start_y + text_size[1] * 1.5)
-
+        text_size = cv2.getTextSize(line, var.font, var.scale_half, var.thickness_double)[0]
+        # start_x = (image.shape[1] - text_size[0]) // 2
+        cv2.putText(image, line, (start_x, start_y), var.font, var.scale_half, var.white_color, var.thickness_double)
+        start_y = int(start_y + text_size[1] * var.line_height)
     return image
+
+
+# def draw_multiline_text_to_top_right(image, text, fs=1):
+#     lines = text.split('\n')
+#     total_text_height = len(lines) * cv2.getTextSize(lines[0], font, fs, font_thickness)[0][1]
+#     start_y = (image.shape[0] - total_text_height) // 2
+#     for line in lines:
+#         text_size = cv2.getTextSize(line, font, fs, font_thickness)[0]
+#         start_x = (image.shape[1] - text_size[0]) // 2
+#         cv2.putText(image, line, (start_x, start_y), font, fs, font_color, font_thickness)
+#         start_y = int(start_y + text_size[1] * var.line_height)
+#     return image
 
 
 def check_winner(player1, player2):
@@ -173,54 +160,61 @@ def game_running(clock, success, game_text, player1, player2, results):
             game_text = string_constants.FAIL
     elif clock < var.MAX_TIME:
         if success:
-            game_text = f"P1 {player1}.\nP2 {player2}.\n"
+            game_text = f"{string_constants.PLAYER1} {player1}.\n{string_constants.PLAYER2} {player2}.\n"
             game_text += check_winner(player1, player2)
             print(game_text)
 
     return clock, success, game_text, player1, player2
 
 
-def get_current_option(frame):
+def is_five(hand_landmarks):
+    return hand_landmarks.landmark[1].y > hand_landmarks.landmark[4].y and \
+        hand_landmarks.landmark[5].y > hand_landmarks.landmark[8].y and \
+        hand_landmarks.landmark[9].y > hand_landmarks.landmark[12].y and \
+        hand_landmarks.landmark[13].y > hand_landmarks.landmark[16].y and \
+        hand_landmarks.landmark[17].y > hand_landmarks.landmark[20].y
+
+
+def is_one(hand_landmarks):
+    return hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+        hand_landmarks.landmark[9].y < hand_landmarks.landmark[12].y and \
+        hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
+        hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y
+
+
+def is_two(hand_landmarks):
+    return hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+        hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
+        hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
+        hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y
+
+
+def is_three(hand_landmarks):
+    return hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+        hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
+        hand_landmarks.landmark[16].y < hand_landmarks.landmark[13].y and \
+        hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y
+
+
+def get_current_option_and_warming(frame, text_frame):
     results = hands.process(frame)
     if results.multi_hand_landmarks is None:
         return None
-
-    # print(f"len {len(results.multi_hand_landmarks)}")
     if len(results.multi_hand_landmarks) == 1:
-        # print(results.multi_hand_landmarks[0])
         hand_landmarks = results.multi_hand_landmarks[0]
-        # draw_landmarks(frame, hand_landmarks)
-        draw_hand_bounding_box(frame, hand_landmarks, string_constants.PLAYER1)
-
-        if hand_landmarks.landmark[1].y > hand_landmarks.landmark[4].y and \
-                hand_landmarks.landmark[5].y > hand_landmarks.landmark[8].y and \
-                hand_landmarks.landmark[9].y > hand_landmarks.landmark[12].y and \
-                hand_landmarks.landmark[13].y > hand_landmarks.landmark[16].y and \
-                hand_landmarks.landmark[17].y > hand_landmarks.landmark[20].y:
+        draw_hand_bounding_box(text_frame, hand_landmarks, string_constants.PLAYER1)
+        if is_five(hand_landmarks):
             return 5
-
-        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
-                hand_landmarks.landmark[9].y < hand_landmarks.landmark[12].y and \
-                hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
-                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+        if is_one(hand_landmarks):
             return 1
-
-        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
-                hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
-                hand_landmarks.landmark[16].y < hand_landmarks.landmark[13].y and \
-                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+        if is_three(hand_landmarks):
             return 3
-
-        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
-                hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
-                hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
-                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+        if is_two(hand_landmarks):
             return 2
         else:
             return None
-
     elif len(results.multi_hand_landmarks) == 2:
-        add_text_to_image(frame, string_constants.warn_one_hand)
+        add_warning_text_to_bottom_left(text_frame, string_constants.warn_one_hand)
     return None
 
 
@@ -238,31 +232,20 @@ def put_text_horizontal(image, is_horizontal=False):
                 var.scale_half, var.white_color, var.thickness_double)
 
 
-def is_quite_game_1(is_quit, flag_game_1, option, game_clock_1):
+def is_quite_game(is_quit, flag_game, option, game_clock):
     if is_quit:
         return False, False, None, var.MIN_TIME, var.MIN_TIME
-    return is_quit, flag_game_1, option, var.MIN_TIME, game_clock_1
-
-
-def is_quite_game_2(is_quit, flag_game_2, option, game_clock_2):
-    if is_quit:
-        return False, False, None, var.MIN_TIME, var.MIN_TIME
-    return is_quit, flag_game_2, option, var.MIN_TIME, game_clock_2
-
-
-def is_quite_game_3(is_quit, flag_game_3, option, game_clock_3):
-    if is_quit:
-        return False, False, None, var.MIN_TIME, var.MIN_TIME
-    return is_quit, flag_game_3, option, var.MIN_TIME, game_clock_3
+    return is_quit, flag_game, option, var.MIN_TIME, game_clock
 
 
 def is_horizontal(frame, frame_hands):
-    if len(frame_hands) == 1:
-        hand_landmarks = frame_hands[0]
-        palm_landmarks = [(int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])) for landmark in
-                          hand_landmarks.landmark]
+    if frame_hands:
+        if len(frame_hands) == 1:
+            hand_landmarks = frame_hands[0]
+            palm_landmarks = [(int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])) for landmark in
+                              hand_landmarks.landmark]
 
-        return check_hand_horizontal(palm_landmarks)
+            return check_hand_horizontal(palm_landmarks)
     return False
 
 

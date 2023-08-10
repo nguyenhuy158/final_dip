@@ -8,7 +8,10 @@ import config
 import mediapipe as mp
 from src.string_constants import menu_text
 
-# MAIN PROCESS
+# END IMPORT LIBRARY
+
+
+# BEGIN GAMES
 videoCapture = cv2.VideoCapture(0)
 utils.change_video_capture_size(videoCapture)
 
@@ -48,6 +51,7 @@ is_shown = False
 class_images = quick_draw_utils.get_images("images", config.CLASSES)
 
 
+# LIST FUNCTION
 def logging():
     print(f"option -> {option}")
     print(f"clock -> {clock}")
@@ -59,6 +63,10 @@ def logging():
     print(f"is_quit -> {is_quit}")
 
 
+# END LIST FUNCTION
+
+
+# MAIN GAMES
 while videoCapture.isOpened():
     isReadSuccess, frame = videoCapture.read()
 
@@ -71,52 +79,53 @@ while videoCapture.isOpened():
     # frame.flags.writeable = False
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = cv2.flip(frame, 1)
+    backup_frame = frame.copy()
+    text_frame = np.zeros_like(frame)
 
     # logging()
 
-    if option is None or option == 5 and not flag_game_1 and not flag_game_2:
-        utils.draw_multiline_text(frame, menu_text, 0.5)
-        option = utils.get_current_option(frame)
+    if option is None or option == 5 and not flag_game_1 and not flag_game_2 and not flag_game_3:
+        utils.draw_multiline_text(text_frame, menu_text)
+        option = utils.get_current_option_and_warming(frame, text_frame)
 
+    # GAME ONE
     if option == 1 and not flag_game_1:
-        utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
-
+        utils.add_normal_text_to_right_bottom(text_frame,
+                                              f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
         if clock < 0:
             flag_game_1 = True
         else:
-            new_option = utils.get_current_option(frame)
-            clock = var.MIN_TIME if new_option == 2 or new_option == 5 else clock
+            new_option = utils.get_current_option_and_warming(frame, text_frame)
+            clock = var.MIN_TIME if new_option == 2 or new_option == 5 or new_option == 3 else clock
             option = new_option
-
         clock = (clock - 1)
-
+    # GAME TWO
     if option == 2 and not flag_game_2:
-        utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
-
+        utils.add_normal_text_to_right_bottom(text_frame,
+                                              f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
         if clock < 0:
             flag_game_2 = True
         else:
-            new_option = utils.get_current_option(frame)
-            clock = var.MIN_TIME if new_option == 1 or new_option == 5 else clock
+            new_option = utils.get_current_option_and_warming(frame, text_frame)
+            clock = var.MIN_TIME if new_option == 1 or new_option == 5 or new_option == 3 else clock
             option = new_option
-
         clock = (clock - 1)
-
+    # GAME THREE
     if option == 3 and not flag_game_3:
-        utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
-
+        utils.add_normal_text_to_right_bottom(text_frame,
+                                              f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
         if clock < 0:
             flag_game_3 = True
         else:
-            new_option = utils.get_current_option(frame)
-            clock = var.MIN_TIME if new_option == 1 or new_option == 5 else clock
+            new_option = utils.get_current_option_and_warming(frame, text_frame)
+            clock = var.MIN_TIME if new_option == 1 or new_option == 5 or new_option == 2 else clock
             option = new_option
-
         clock = (clock - 1)
-
+    # PROCESSING GAME
     if flag_game_1:
         game_play_clock1, success, game_text, player1, player2, game_clock1, is_quit \
             = games.rock_paper_scissors(frame,
+                                        text_frame,
                                         game_play_clock1,
                                         success,
                                         game_text,
@@ -124,25 +133,47 @@ while videoCapture.isOpened():
                                         player2,
                                         game_clock1,
                                         is_quit)
-        is_quit, flag_game_1, option, clock, game_clock1 = utils.is_quite_game_1(is_quit, flag_game_1, option,
-                                                                                 game_clock1)
-
+        is_quit, flag_game_1, option, clock, game_clock1 \
+            = utils.is_quite_game(is_quit,
+                                  flag_game_1,
+                                  option,
+                                  game_clock1)
     if flag_game_2:
-        game_clock2, is_quit = games.dino(frame, game_clock2, is_quit)
-        is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
-                                                                                 game_clock2)
-
+        game_clock2, is_quit \
+            = games.dino(frame,
+                         text_frame,
+                         game_clock2,
+                         is_quit)
+        is_quit, flag_game_2, option, clock, game_clock2 \
+            = utils.is_quite_game(is_quit,
+                                  flag_game_2,
+                                  option,
+                                  game_clock2)
     if flag_game_3:
-        points, canvas, is_drawing, is_shown, game_clock3, is_quit = games.quick_draw(frame, points, canvas, is_drawing,
-                                                                                      is_shown, game_clock3, is_quit)
-        is_quit, flag_game_3, option, clock, game_clock3 = utils.is_quite_game_3(is_quit, flag_game_3, option,
-                                                                                 game_clock3)
+        points, canvas, is_drawing, is_shown, game_clock3, is_quit \
+            = games.quick_draw(frame,
+                               text_frame,
+                               points,
+                               canvas,
+                               is_drawing,
+                               is_shown,
+                               game_clock3,
+                               is_quit)
+        is_quit, flag_game_3, option, clock, game_clock3 \
+            = utils.is_quite_game(is_quit,
+                                  flag_game_3,
+                                  option,
+                                  game_clock3)
 
-    cv2.imshow(string_constants.window_name, frame)
+    # SHOWING GAME
+    result = cv2.addWeighted(text_frame, var.alpha_text, frame, var.beta_frame, 0)
+    cv2.imshow(string_constants.window_name, result)
+
+    # HANDLE EXIT GAMES
     if cv2.waitKey(25) & 0xFF == ord("q") or cv2.waitKey(5) & 0xFF == 27:
         break
 
+# RELEASE SOURCE
 videoCapture.release()
 cv2.destroyAllWindows()
-
-# END PROCESS
+# END GAMES
