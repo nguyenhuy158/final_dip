@@ -24,3 +24,5 @@ time = 'Thoi Gian'
 CAM_ERROR = 'Camera not found.'
 warn_one_hand = 'Ban chi su dung 1 day de chon'
 position_horizontal_text = (10, 30)
+new_width = 640
+new_height = 320

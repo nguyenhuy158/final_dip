@@ -12,10 +12,7 @@ from string_constants import menu_text
 
 # MAIN PROCESS
 videoCapture = cv2.VideoCapture(0)
-new_width = 1280
-new_height = 720
-videoCapture.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-videoCapture.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+utils.change_video_capture_size(videoCapture)
 
 # Define the menu option text and position
 menu_position = (20, 30)
@@ -34,6 +31,7 @@ clock = string_constants.MIN_TIME
 
 game_clock1 = 0
 game_clock2 = string_constants.MIN_TIME
+game_clock3 = string_constants.MIN_TIME
 success = True
 player1 = player2 = None
 game_text = ''
@@ -43,12 +41,24 @@ flag_game_3 = False
 is_quit = False
 
 # quickdraw
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 points = collections.deque(maxlen=512)
 canvas = np.zeros((480, 640, 3), dtype=np.uint8)
 is_drawing = False
 is_shown = False
 class_images = quick_draw_utils.get_images("images", config.CLASSES)
+
+
+def logging():
+    print(f"option -> {option}")
+    print(f"clock -> {clock}")
+    print(f"flag_game_1 -> {flag_game_1}")
+    print(f"flag_game_2 -> {flag_game_2}")
+    print(f"flag_game_3 -> {flag_game_3}")
+    print(f"game_clock1 -> {game_clock1}")
+    print(f"game_clock2 -> {game_clock2}")
+    print(f"is_quit -> {is_quit}")
+
 
 while videoCapture.isOpened():
     isReadSuccess, frame = videoCapture.read()
@@ -63,14 +73,7 @@ while videoCapture.isOpened():
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = cv2.flip(frame, 1)
 
-    print(f"option -> {option}")
-    print(f"clock -> {clock}")
-    print(f"flag_game_1 -> {flag_game_1}")
-    print(f"flag_game_2 -> {flag_game_2}")
-    print(f"flag_game_3 -> {flag_game_3}")
-    print(f"game_clock1 -> {game_clock1}")
-    print(f"game_clock2 -> {game_clock2}")
-    print(f"is_quit -> {is_quit}")
+    # logging()
 
     if option is None or option == 5 and not flag_game_1 and not flag_game_2:
         utils.draw_multiline_text(frame, menu_text, 0.5)
@@ -100,14 +103,26 @@ while videoCapture.isOpened():
 
         clock = (clock - 1)
 
+    if option == 3 and not flag_game_3:
+        utils.add_text_to_image(frame, f"{string_constants.time}: {utils.format_number_lead_zero(clock)}")
+
+        if clock < 0:
+            flag_game_3 = True
+        else:
+            new_option = utils.get_current_option(frame)
+            clock = string_constants.MIN_TIME if new_option == 1 or new_option == 5 else clock
+            option = new_option
+
+        clock = (clock - 1)
+
     if flag_game_1:
         game_clock1, success, game_text, player1, player2, is_quit = games.rock_paper_scissors(frame, game_clock1,
                                                                                                success,
                                                                                                game_text,
                                                                                                player1, player2,
                                                                                                is_quit)
-        is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
-                                                                                 game_clock2)
+        # is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
+        #                                                                          game_clock2)
 
     if flag_game_2:
         game_clock2, is_quit = games.dino(frame, game_clock2, is_quit)

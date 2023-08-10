@@ -75,11 +75,15 @@ def quick_draw(frame, points, canvas, is_drawing, is_shown):
     results = utils.hands.process(frame)
 
     # Draw the hand annotations on the image.
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
-            if hand_landmarks.landmark[8].y < hand_landmarks.landmark[7].y and hand_landmarks.landmark[12].y < \
-                    hand_landmarks.landmark[11].y and hand_landmarks.landmark[16].y < hand_landmarks.landmark[15].y:
+            print(f"Game quick draw start")
+            utils.draw_landmarks(frame, hand_landmarks)
+
+            if hand_landmarks.landmark[8].y < hand_landmarks.landmark[7].y \
+                    and hand_landmarks.landmark[12].y < hand_landmarks.landmark[11].y \
+                    and hand_landmarks.landmark[16].y < hand_landmarks.landmark[15].y:
                 if len(points):
                     is_drawing = False
                     is_shown = True
@@ -103,15 +107,18 @@ def quick_draw(frame, points, canvas, is_drawing, is_shown):
             else:
                 is_drawing = True
                 is_shown = False
-                points.append((int(hand_landmarks.landmark[8].x * 640), int(hand_landmarks.landmark[8].y * 480)))
+                points.append((int(hand_landmarks.landmark[8].x * string_constants.new_width),
+                               int(hand_landmarks.landmark[8].y * string_constants.new_height)))
                 for i in range(1, len(points)):
                     cv2.line(frame, points[i - 1], points[i], (0, 255, 0), 2)
                     cv2.line(canvas, points[i - 1], points[i], (255, 255, 255), 5)
                     utils.draw_landmarks(frame, hand_landmarks)
-                    if not is_drawing and is_shown:
-                        cv2.putText(frame, 'You are drawing', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5,
-                                    cv2.LINE_AA)
-                        frame[5:65, 490:550] = quick_draw_utils.get_overlay(frame[5:65, 490:550],
+
+            if not is_drawing and is_shown:
+                cv2.putText(frame, 'You are drawing', (100, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5,
+                            cv2.LINE_AA)
+                frame[5:65, 490:550] = quick_draw_utils.get_overlay(frame[5:65, 490:550],
                                                                             config.class_images[config.predicted_class],
                                                                             (60, 60))
 

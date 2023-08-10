@@ -254,3 +254,10 @@ def is_horizontal(frame, frame_hands):
         return check_hand_horizontal(palm_landmarks)
     else:
         return False
+
+
+def change_video_capture_size(video_capture):
+
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, string_constants.new_width)
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, string_constants.new_height)
+    pass
