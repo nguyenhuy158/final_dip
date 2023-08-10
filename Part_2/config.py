@@ -1,5 +1,4 @@
 import torch
-
 from src import quick_draw_utils
 
 RED_HSV_LOWER = [0, 100, 100]

@@ -15,21 +15,9 @@ from src.string_constants import menu_text
 videoCapture = cv2.VideoCapture(0)
 utils.change_video_capture_size(videoCapture)
 
-# Define the menu option text and position
-menu_position = (20, 30)
-menu_font = cv2.FONT_HERSHEY_SIMPLEX
-menu_font_scale = 0.7
-menu_color = (255, 255, 255)  # White color
-
-BaseOptions = mp.tasks.BaseOptions
-HandLandmarker = mp.tasks.vision.HandLandmarker
-HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
-HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
-VisionRunningMode = mp.tasks.vision.RunningMode
-
+# DECLARE
 option = 1
 clock = var.MIN_TIME
-
 game_play_clock1 = 0
 game_clock1 = var.MIN_TIME
 game_clock2 = var.MIN_TIME
@@ -42,7 +30,7 @@ flag_game_2 = False
 flag_game_3 = False
 is_quit = False
 
-# quickdraw
+# DECLARE for quick draw
 cap = cv2.VideoCapture(1)
 points = collections.deque(maxlen=512)
 canvas = np.zeros((480, 640, 3), dtype=np.uint8)

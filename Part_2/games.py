@@ -3,7 +3,7 @@ import config
 import cv2
 import numpy as np
 import torch
-from src import utils, var, string_constants, quick_draw_utils
+from src import utils, var, string_constants, quick_draw_utils, landmark_condition
 
 
 def rock_paper_scissors(frame, text_frame, clock, success, game_text, player1, player2, game_clock1, is_quit):
@@ -15,8 +15,8 @@ def rock_paper_scissors(frame, text_frame, clock, success, game_text, player1, p
             player_name = f"{string_constants.PLAYER}{idx + 1}"
             utils.draw_hand_bounding_box(frame, hand_landmarks, player_name)
     # step2: START GAME
-    clock, success, game_text, player1, player2 = utils.game_running(clock, success,
-                                                                     game_text, player1, player2, results)
+    clock, success, game_text, player1, player2 = utils.game1_running(clock, success,
+                                                                      game_text, player1, player2, results)
     # step3
     utils.draw_multiline_text(text_frame, game_text)
     # step4
@@ -25,7 +25,7 @@ def rock_paper_scissors(frame, text_frame, clock, success, game_text, player1, p
     # step5
     clock = (clock + 1) % var.MAX_TIME
     # step6.1
-    is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
+    is_horizontal = landmark_condition.is_horizontal(frame, results.multi_hand_landmarks)
     # step6.2
     utils.put_text_horizontal(text_frame, is_horizontal)
     if is_horizontal and game_clock1 <= 0:
@@ -49,14 +49,16 @@ def dino(frame, text_frame, game_clock2, is_quit):
             # step2
             utils.draw_hand_bounding_box(frame, hand_landmarks, string_constants.PLAYER1)
             # step3
-            if utils.detect_number(hand_landmarks) == string_constants.ROCK:
+            if utils.detect_rock_gestures(hand_landmarks) == string_constants.ROCK:
                 utils.keyboard.press(utils.Key.space)
-                cv2.putText(text_frame, "Press", (10, frame.shape[0] - 100), var.font, var.scale_half, var.white_color,
-                            var.thickness_double)
+                utils.put_text_in_middle(text_frame, string_constants.press)
+                # cv2.putText(text_frame, "Press", (10, frame.shape[0] - 100), var.font, var.scale_half,
+                # var.white_color,
+                # var.thickness_double)
             else:
                 utils.keyboard.release(utils.Key.space)
             # step4
-            is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
+            is_horizontal = landmark_condition.is_horizontal(frame, results.multi_hand_landmarks)
             # step5
             utils.put_text_horizontal(text_frame, is_horizontal)
             if is_horizontal and game_clock2 <= 0:
@@ -68,15 +70,12 @@ def dino(frame, text_frame, game_clock2, is_quit):
             # step6
             utils.add_normal_text_to_right_bottom(text_frame,
                                                   f"{string_constants.time}: {game_clock2}")
-
     return game_clock2, is_quit
 
 
 def quick_draw(frame, text_frame, points, canvas, is_drawing, is_shown, game_clock3, is_quit):
     results = utils.hands.process(frame)
 
-    # Draw the hand annotations on the image.
-    # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             # print(f"Game quick draw start")
@@ -116,16 +115,19 @@ def quick_draw(frame, text_frame, points, canvas, is_drawing, is_shown, game_clo
                     utils.draw_landmarks(frame, hand_landmarks)
 
             if not is_drawing and is_shown:
-                cv2.putText(frame, 'You are drawing', (100, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5,
-                            cv2.LINE_AA)
-                frame[5:65, 490:550] = quick_draw_utils.get_overlay(frame[5:65, 490:550],
-                                                                    config.class_images[config.predicted_class],
-                                                                    (60, 60))
+                # cv2.putText(text_frame, string_constants.drawing,
+                #             var.position_drawing,
+                #             var.font,
+                #             var.scale_default + var.scale_half,
+                #             var.green_color,
+                #             var.thickness_default * 3)
+                text_frame[10:70, 500:560] = quick_draw_utils.get_overlay(frame[10:70, 500:560],
+                                                                          config.class_images[config.predicted_class],
+                                                                          var.predict_size)
             # step4
-            is_horizontal = utils.is_horizontal(frame, results.multi_hand_landmarks)
+            is_horizontal = landmark_condition.is_horizontal(frame, results.multi_hand_landmarks)
             # step5
-            utils.put_text_horizontal(frame, is_horizontal)
+            utils.put_text_horizontal(text_frame, is_horizontal)
             if is_horizontal and game_clock3 <= 0:
                 is_quit = True
             elif is_horizontal:
@@ -133,6 +135,6 @@ def quick_draw(frame, text_frame, points, canvas, is_drawing, is_shown, game_clo
             else:
                 game_clock3 = var.MIN_TIME
             # step6
-            utils.add_normal_text_to_right_bottom(frame,
+            utils.add_normal_text_to_right_bottom(text_frame,
                                                   f"{string_constants.time}: {game_clock3}")
     return points, canvas, is_drawing, is_shown, game_clock3, is_quit
