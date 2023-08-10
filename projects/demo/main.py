@@ -9,6 +9,10 @@ from string_constants import menu_text
 
 # MAIN PROCESS
 videoCapture = cv2.VideoCapture(0)
+new_width = 1280
+new_height = 720
+videoCapture.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+videoCapture.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
 
 # Define the menu option text and position
 menu_position = (20, 30)
