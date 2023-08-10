@@ -3,12 +3,37 @@
 # un push all file in data (hands) directory
 projects/hands/data/*
 
+# pycharm ignore
+# Python-related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+venv/
+.env
 
+# PyCharm-related
+.idea/
+*.iml
+*.iws
+*.ipr
 
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
 
+# Logs and temporary files
+*.log
+*.tmp
 
-
-
+# Dependency directories
+lib/
+libs/
+dist/
+build/
 
 
 ######################################## AUTO IGNORE ######################################## 
