@@ -13,5 +13,7 @@ python.exe -m pip install --upgrade pip
 pip install mediapipe
 pip install pynput
 pip install opencv-python
+pip install torch torchvision torchaudio
+pip install scikit-learn
 ```
 [Data set](https://www.kaggle.com/datasets/shyambhu/hands-and-palm-images-dataset)

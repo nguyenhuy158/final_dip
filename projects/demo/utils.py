@@ -208,6 +208,12 @@ def get_current_option(frame):
 
         if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
                 hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
+                hand_landmarks.landmark[16].y < hand_landmarks.landmark[13].y and \
+                hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
+            return 3
+
+        if hand_landmarks.landmark[8].y < hand_landmarks.landmark[5].y and \
+                hand_landmarks.landmark[12].y < hand_landmarks.landmark[9].y and \
                 hand_landmarks.landmark[13].y < hand_landmarks.landmark[16].y and \
                 hand_landmarks.landmark[17].y < hand_landmarks.landmark[20].y:
             return 2
