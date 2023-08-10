@@ -26,11 +26,13 @@ option = 1
 clock = string_constants.MIN_TIME
 
 game_clock1 = 0
+game_clock2 = string_constants.MIN_TIME
 success = True
 player1 = player2 = None
 game_text = ''
 flag_game_1 = False
 flag_game_2 = False
+is_quit = False
 
 while videoCapture.isOpened():
     isReadSuccess, frame = videoCapture.read()
@@ -46,6 +48,9 @@ while videoCapture.isOpened():
     print(f"clock -> {clock}")
     print(f"flag_game_1 -> {flag_game_1}")
     print(f"flag_game_2 -> {flag_game_2}")
+    print(f"game_clock1 -> {game_clock1}")
+    print(f"game_clock2 -> {game_clock2}")
+    print(f"is_quit -> {is_quit}")
 
     if option is None or option == 5 and not flag_game_1 and not flag_game_2:
         utils.draw_multiline_text(frame, menu_text, 0.5)
@@ -76,11 +81,18 @@ while videoCapture.isOpened():
         clock = (clock - 1)
 
     if flag_game_1:
-        game_clock1, success, game_text, player1, player2 = games.rock_paper_scissors(frame, game_clock1, success,
-                                                                                      game_text,
-                                                                                      player1, player2)
+        game_clock1, success, game_text, player1, player2, is_quit = games.rock_paper_scissors(frame, game_clock1,
+                                                                                               success,
+                                                                                               game_text,
+                                                                                               player1, player2,
+                                                                                               is_quit)
+        is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
+                                                                                 game_clock2)
+
     if flag_game_2:
-        pass
+        game_clock2, is_quit = games.dino(frame, game_clock2, is_quit)
+        is_quit, flag_game_2, option, clock, game_clock2 = utils.is_quite_game_2(is_quit, flag_game_2, option,
+                                                                                 game_clock2)
 
     cv2.imshow(string_constants.window_name, frame)
     if cv2.waitKey(25) & 0xFF == ord("q"):

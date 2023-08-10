@@ -2,11 +2,23 @@ import cv2
 import string_constants
 import numpy as np
 import mediapipe as mp
+from pynput.keyboard import Controller, Key
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 1
 font_color = (255, 255, 255)  # White color
 font_thickness = 2
+keyboard = Controller()
+
+
+def check_hand_horizontal(palm_landmarks):
+    # Calculate the slope of the hand line (y2 - y1) / (x2 - x1)
+    slope = (palm_landmarks[0][1] - palm_landmarks[9][1]) / (palm_landmarks[0][0] - palm_landmarks[9][0])
+
+    # Define a threshold for the slope to determine if the hand is horizontal
+    slope_threshold = 0.5  # Adjust this value as needed
+
+    return abs(slope) < slope_threshold
 
 
 def put_text_in_middle(image, text):
@@ -201,3 +213,34 @@ def get_current_option(frame):
     elif len(results.multi_hand_landmarks) == 2:
         add_text_to_image(frame, string_constants.warn_one_hand)
     return None
+
+
+def detect_number(hand_landmarks):
+    if (hand_landmarks.landmark[8].y > hand_landmarks.landmark[5].y) \
+            and (hand_landmarks.landmark[12].y > hand_landmarks.landmark[9].y) \
+            and (hand_landmarks.landmark[16].y > hand_landmarks.landmark[13].y):
+        return string_constants.ROCK
+
+
+def put_text_horizontal(image, is_horizontal=False):
+    cv2.putText(image, "Horizontal" if is_horizontal else "Not Horizontal", string_constants.position_horizontal_text,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1, (0, 255, 0), 2)
+
+
+def is_quite_game_2(is_quit, flag_game_2, option, game_clock_2):
+    if is_quit:
+        return False, False, None, string_constants.MIN_TIME, string_constants.MIN_TIME
+    return is_quit, flag_game_2, option, string_constants.MIN_TIME, game_clock_2
+
+
+def is_horizontal(frame, frame_hands):
+    if len(frame_hands) == 1:
+        hand_landmarks = frame_hands[0]
+        palm_landmarks = [(int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])) for landmark in
+                          hand_landmarks.landmark]
+
+        # Check if hand is horizontal
+        return check_hand_horizontal(palm_landmarks)
+    else:
+        return False
