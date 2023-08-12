@@ -49,6 +49,7 @@ def dino(frame, text_frame, game_clock2, is_quit):
             # step2
             utils.draw_hand_bounding_box(frame, hand_landmarks, string_constants.PLAYER1)
             # step3
+            # pynput
             if utils.detect_rock_gestures(hand_landmarks) == string_constants.ROCK:
                 utils.keyboard.press(utils.Key.space)
                 utils.put_text_in_middle(text_frame, string_constants.press)
